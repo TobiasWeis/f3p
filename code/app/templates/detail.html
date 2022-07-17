@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Home{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+    <h2>Details for </h2>
+
+<select class="form-select" onchange="select_update();" aria-label="Default select example" id="club-selector">
+</select>
+
+    <hr/>
+
+    <div id="plot" style="width:100%;height:400px;"></div>
+
+<script type="text/javascript">
+var percentColors = [
+    { pct: 0, color: { r: 0x00, g: 0xbb, b: 0 } },
+    { pct: 35, color: { r: 0xff, g: 0xff, b: 0 } },
+    { pct: 50, color: { r: 0xbb, g: 0x00, b: 0 } } ];
+
+var getColorForPercentage = function(pct) {
+    for (var i = 1; i < percentColors.length - 1; i++) {
+        if (pct < percentColors[i].pct) {
+            break;
+        }
+    }
+    var lower = percentColors[i - 1];
+    var upper = percentColors[i];
+    var range = upper.pct - lower.pct;
+    var rangePct = (pct - lower.pct) / range;
+    var pctLower = 1 - rangePct;
+    var pctUpper = rangePct;
+    var color = {
+        r: Math.floor(lower.color.r * pctLower + upper.color.r * pctUpper),
+        g: Math.floor(lower.color.g * pctLower + upper.color.g * pctUpper),
+        b: Math.floor(lower.color.b * pctLower + upper.color.b * pctUpper)
+    };
+    return 'rgb(' + [color.r, color.g, color.b].join(',') + ')';
+};
+
+var club_name = "wiesbaden1";
+
+function select_update(){
+    club_name = $('#club-selector').find(":selected").val();
+    update();
+}
+
+function populate_clubs(){
+    $.post("api/clubs", function(data){
+
+        data.forEach(function(datum){
+            $('#club-selector').append($('<option>', {
+                value: datum.name,
+                text: datum.title
+            }));
+        });
+
+        // set default value
+        $("#club-selector").val('wiesbaden1');
+    });
+}
+
+
+function update(){
+    $.ajax('api/detail', {
+        data : JSON.stringify({club_name:club_name}),
+        contentType : 'application/json',
+        type : 'POST',
+        success: function( data ) {
+            x = [];
+            y = [];
+            var tzoffset = (new Date()).getTimezoneOffset() * 60000;
+            data.forEach(function(datum){
+                x.push(new Date(datum[0]*1000 - tzoffset).toISOString("de-DE", {timeZone: "Europe/Berlin"}));
+                y.push(datum[1]/datum[2]*100.);
+            });
+            PLOT = document.getElementById('plot');
+            Plotly.newPlot( PLOT, [{
+                x: x,
+                y: y }], {
+                margin: { t: 0 } } );
+        }});
+}
+
+$( document ).ready(function() {
+    populate_clubs();
+    update();
+    setInterval(update, 60000);
+});
+</script>
+{% endblock %}

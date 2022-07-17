@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, request
 from flask import render_template
 import datetime
 
@@ -11,7 +11,19 @@ pages_blueprint = Blueprint('pages_blueprint', __name__, url_prefix="", template
 def home():
     return render_template('index.html')
 
-@pages_blueprint.route('/status', methods=['POST'])
+@pages_blueprint.route('/detail', methods=['GET'])
+def detail_page():
+    return render_template('detail.html')
+
+@pages_blueprint.route('/api/clubs', methods=['POST'])
+def clubs():
+    clubs = Club.query.order_by(Club.title).all()
+    ret = []
+    for c in clubs:
+        ret.append({'title':c.title, 'name':c.name})
+    return jsonify(ret)
+
+@pages_blueprint.route('/api/status', methods=['POST'])
 def status():
     clubs = Club.query.order_by(Club.title).all()
 
@@ -28,3 +40,15 @@ def status():
             data.append(thisdata)
 
     return jsonify(data)
+
+@pages_blueprint.route('/api/detail', methods=['POST'])
+def detail():
+    data = request.json
+    club = Club.query.filter(Club.name == data['club_name']).first()
+    timepoints = Timepoint.query.filter(Timepoint.id_club==club.id).order_by(Timepoint.timestamp).all()
+
+    ret = []
+    for tp in timepoints:
+        ret.append([tp.timestamp, tp.checkins, tp.total_allowed])
+
+    return jsonify(ret)

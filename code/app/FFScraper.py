@@ -6,7 +6,7 @@ import requests
 from sqlalchemy import and_
 
 from app import db
-from app.models import Club, Timepoint
+from app.models import Club, Timepoint, Course
 
 
 class FFScraper:
@@ -27,7 +27,7 @@ class FFScraper:
 
     def get_checkins(self):
         with self.app.app_context():
-            print(f"[{self.club_name}] Getting timepoint")
+            #print(f"[{self.club_name}] Getting timepoint")
             response = requests.get(self.get_api_url_checkins())
             if response.status_code == 200:
                 res = json.loads(response.content.decode('utf-8'))
@@ -40,12 +40,11 @@ class FFScraper:
                 db.session.add(tp)
                 db.session.commit()
             else:
-                print(f"Scraping error {self.club_name}")
+                print(f"[{self.club_name}] Timepoint error")
 
 
     def get_courses(self):
         with self.app.app_context():
-            print(f"[{self.club_name}] Getting courses")
             response = requests.get(self.get_api_url_courses())
             if response.status_code == 200:
                 data = json.loads(response.content.decode('utf-8'))['data']
@@ -84,4 +83,6 @@ class FFScraper:
                         except Exception as e:
                             print("oops: ")
                             print(e)
-
+            else:
+                print(f"[{self.club_name}] Error Courses")
+                

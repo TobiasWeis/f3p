@@ -58,8 +58,8 @@ var getColorForPercentage = function(pct) {
     return 'rgb(' + [color.r, color.g, color.b].join(',') + ')';
 };
 
-$( document ).ready(function() {
-    $.post( "status", function( data ) {
+function update(){
+    $.post( "api/status", function( data ) {
         $("#results").html('');
         let html = "<div>";
         data.forEach(function(datum) {
@@ -80,6 +80,11 @@ $( document ).ready(function() {
         html += "</div>";
         $("#results").html(html);
     });
+}
+
+$( document ).ready(function() {
+    update();
+    setInterval(update, 60000);
 });
 </script>
 {% endblock %}
