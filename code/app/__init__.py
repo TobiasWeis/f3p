@@ -33,7 +33,13 @@ def create_app():
 
         Swagger(app)
 
-        clubs = ['wiesbaden1', 'frankfurt8', 'berlin2', 'hamburg1']
+        # get all clubs
+        all_clubs = models.Club.query.all()
+
+        clubs = []
+        for club in all_clubs:
+            clubs.append(club.name)
+        #clubs = ['wiesbaden1', 'frankfurt8', 'berlin2', 'hamburg1']
 
         scrapers = []
         for c in clubs:
@@ -45,13 +51,15 @@ def create_app():
                                   func=fs.get_checkins,
                                   trigger='cron',
                                   minute='*/1',
-                                  hour='*')
+                                  hour='*',
+                                  misfire_grace_time=30)
                 # get the courses of the club only every 30 mins
                 scheduler.add_job(id=f"courses for {c}",
                                   func=fs.get_courses,
                                   trigger='cron',
                                   minute='*/30',
-                                  hour='*')
+                                  hour='*',
+                                  misfire_grace_time=30)
 
             except ConflictingIdError:
                 print("ERROR: Schedule job was already there")
