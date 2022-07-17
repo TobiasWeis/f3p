@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Home{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+    <h2>Overview</h2>
+
+    <div class="result">
+    </div>
+
+    <hr/>
+
+    <table class="table">
+      <thead>
+        <tr>
+          <th scope="col">Club</th>
+          <th scope="col">Fullness</th>
+          <th scope="col">Date</th>
+        </tr>
+      </thead>
+      <tbody id="results">
+        {% for item in data %}
+            <tr>
+                <th scope="row">{{item.name}}</th>
+                <!-- <td>{{item.perc}}%</td> -->
+                <td><div class="progressbar"><div></div></div></td>
+                <td>{{item.datestr}}</td>
+            </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+<script type="text/javascript">
+var percentColors = [
+    { pct: 0, color: { r: 0x00, g: 0xbb, b: 0 } },
+    { pct: 35, color: { r: 0xff, g: 0xff, b: 0 } },
+    { pct: 50, color: { r: 0xbb, g: 0x00, b: 0 } } ];
+
+var getColorForPercentage = function(pct) {
+    for (var i = 1; i < percentColors.length - 1; i++) {
+        if (pct < percentColors[i].pct) {
+            break;
+        }
+    }
+    var lower = percentColors[i - 1];
+    var upper = percentColors[i];
+    var range = upper.pct - lower.pct;
+    var rangePct = (pct - lower.pct) / range;
+    var pctLower = 1 - rangePct;
+    var pctUpper = rangePct;
+    var color = {
+        r: Math.floor(lower.color.r * pctLower + upper.color.r * pctUpper),
+        g: Math.floor(lower.color.g * pctLower + upper.color.g * pctUpper),
+        b: Math.floor(lower.color.b * pctLower + upper.color.b * pctUpper)
+    };
+    return 'rgb(' + [color.r, color.g, color.b].join(',') + ')';
+};
+
+$( document ).ready(function() {
+    $.post( "status", function( data ) {
+        $("#results").html('');
+        let html = "<div>";
+        data.forEach(function(datum) {
+            //datum.perc = 35;
+            //datum.perc = Math.trunc(Math.random() * 50);
+
+            let textColor = 'black';
+            if(datum.perc == 0){
+                textColor = 'white';
+            }
+
+            html += '<tr>';
+            html += '<th scope="row">'+datum.name+'</th>';
+            html += '<td><div class="progressbar" id="'+datum.name+'"><div style="width:'+datum.perc+'%;background-color:'+getColorForPercentage(datum.perc)+';color:'+textColor+';">'+datum.perc+'%</div></div></td>';
+            html += '<td>'+datum.datestr+'</td>';
+            html += '</tr>';
+        });
+        html += "</div>";
+        $("#results").html(html);
+    });
+});
+</script>
+{% endblock %}
