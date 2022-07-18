@@ -2,8 +2,10 @@ from flask import Blueprint, jsonify, request
 from flask import render_template
 import datetime
 
+from sqlalchemy import and_
+
 from app import db
-from app.models import Timepoint, Club
+from app.models import Timepoint, Club, Course
 
 pages_blueprint = Blueprint('pages_blueprint', __name__, url_prefix="", template_folder='../templates/', static_folder='static', static_url_path='../static/')
 
@@ -45,10 +47,21 @@ def status():
 def detail():
     data = request.json
     club = Club.query.filter(Club.name == data['club_name']).first()
-    timepoints = Timepoint.query.filter(Timepoint.id_club==club.id).order_by(Timepoint.timestamp).all()
 
-    ret = []
+    ret = {}
+    ret['timepoints'] = []
+    ret['courses'] = []
+
+    timepoints = Timepoint.query.filter(Timepoint.id_club==club.id).order_by(Timepoint.timestamp).all()
     for tp in timepoints:
-        ret.append([tp.timestamp, tp.checkins, tp.total_allowed])
+        ret['timepoints'].append([tp.timestamp, tp.checkins, tp.total_allowed])
+
+    courses = Course.query.filter(Course.id_club==club.id).filter(
+            and_(
+                Course.time_start >= timepoints[0].timestamp,
+                Course.time_start < timepoints[-1].timestamp
+                )).all()
+    for c in courses:
+        ret['courses'].append([c.is_cancelled, c.title, c.time_start, c.time_end])
 
     return jsonify(ret)

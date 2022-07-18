@@ -57,9 +57,9 @@ def create_app():
                 scheduler.add_job(id=f"courses for {c}",
                                   func=fs.get_courses,
                                   trigger='cron',
-                                  minute='*/30',
+                                  minute='*/5',
                                   hour='*',
-                                  misfire_grace_time=30)
+                                  misfire_grace_time=300)
 
             except ConflictingIdError:
                 print("ERROR: Schedule job was already there")

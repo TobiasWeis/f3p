@@ -72,14 +72,38 @@ function update(){
             x = [];
             y = [];
             var tzoffset = (new Date()).getTimezoneOffset() * 60000;
-            data.forEach(function(datum){
+            data['timepoints'].forEach(function(datum){
                 x.push(new Date(datum[0]*1000 - tzoffset).toISOString("de-DE", {timeZone: "Europe/Berlin"}));
                 y.push(datum[1]/datum[2]*100.);
             });
+
+            course_starts = [];
+            course_ends = [];
+            shapes = []
+
+            data['courses'].forEach(function(course){
+                cs = new Date(course[2]*1000 - tzoffset).toISOString("de-DE");
+                ce = new Date(course[3]*1000 - tzoffset).toISOString("de-DE");
+                shapes.push({
+                    type:'rect', 
+                    xref:'x', 
+                    yref:'y',
+                    x0:cs, 
+                    x1:ce, 
+                    y0:0, 
+                    y1:100, 
+                    fillcolor:course[0] ? '#ff0000' : '#00ff00', 
+                    opacity:0.2});
+            });
+
             PLOT = document.getElementById('plot');
-            Plotly.newPlot( PLOT, [{
-                x: x,
-                y: y }], {
+            Plotly.newPlot( PLOT, [
+                {
+                    x: x,
+                    y: y 
+                }],
+                {
+                shapes: shapes,
                 margin: { t: 0 } } );
         }});
 }

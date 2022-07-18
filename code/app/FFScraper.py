@@ -22,7 +22,7 @@ class FFScraper:
         return f"https://www.fitnessfirst.de/club/api/checkins/{self.club_name}"
 
     def get_api_url_courses(self):
-        return f"https://www.fitnessfirst.de/kurse/kursplan/search?club_id={self.club_id}&category_id=&class_id=&daytime_id="
+        return "https://www.fitnessfirst.de/kurse/kursplan/search?club_id=%04d&category_id=&class_id=&daytime_id=" % (self.club_id)
 
 
     def get_checkins(self):
@@ -59,12 +59,12 @@ class FFScraper:
                                 title = course["title"]
                                 timestart_str = f"{date_str} {course['time']['from']}"
                                 timeend_str = f"{date_str} {course['time']['to']}"
-                                print(f"{timestart_str}-{timeend_str}: {title}")
+                                #print(f"{timestart_str}-{timeend_str}: {title}")
 
                                 ts_start = time.mktime(datetime.datetime.strptime(timestart_str, "%Y-%m-%d %H:%M").timetuple())
                                 ts_end = time.mktime(datetime.datetime.strptime(timeend_str, "%Y-%m-%d %H:%M").timetuple())
 
-                                thiscourse = db.session.query(Course).filter(and_(Course.title == title, Course.time_start == ts_start)).first()
+                                thiscourse = db.session.query(Course).filter(and_(Course.title == title, Course.time_start == ts_start, Course.id_club == self.club_id)).first()
                                 if thiscourse is None: # add course to db
                                     db.session.add(Course(
                                         id_club=self.club_id,
@@ -84,5 +84,6 @@ class FFScraper:
                             print("oops: ")
                             print(e)
             else:
-                print(f"[{self.club_name}] Error Courses")
+                print(f"[{self.club_name}] Error Courses:")
+                print(response)
                 
