@@ -13,3 +13,5 @@ class Config(object):
     SQLALCHEMY_DATABASE_URI = environ.get("SQLALCHEMY_DATABASE_URI", "sqlite:///ff.db")
     SQLALCHEMY_ECHO = False
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+    OPENWEATHERMAP_API_KEY = "811f113aee4b377ed4b87b15faeb110b"

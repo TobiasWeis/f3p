@@ -26,6 +26,11 @@ class Club(db.Model):
     title = db.Column(db.String, nullable=False)
     address = db.Column(db.String, nullable=False)
 
+    def getZipcode(self):
+        # Luxemburger Str. 253, 50939 Köln
+        return self.address.split(",")[-1].split(" ")[1]
+
+
     def __repr__(self):
         return f"""<Club id:{id}, name:{name}>"""
 
@@ -40,6 +45,14 @@ class Timepoint(db.Model):
 
     def __repr__(self):
         return f"""<Timepoint: {self.timestamp}, {self.checkins}/{self.total_allowed}>"""
+
+
+class TimepointWeather(db.Model):
+    __tablename__ = 'timepoint_weather'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    id_club = db.Column(db.String, db.ForeignKey('club.id'), nullable=False)
+    timestamp = db.Column(db.Integer, nullable=False, default=datetime.datetime.utcnow)
+    temperature = db.Column(db.Float, nullable=False)
 
 
 

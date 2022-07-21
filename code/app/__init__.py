@@ -53,11 +53,21 @@ def create_app():
                                   minute='*/1',
                                   hour='*',
                                   misfire_grace_time=30)
+
+                # get temperature 
+                scheduler.add_job(id=f"temperature for {c}",
+                                  func=fs.get_weather_for_zipcode,
+                                  trigger='cron',
+                                  #minute='*/120', # 52 clubs, api-limit: 1000/day
+                                  hour='*/2',
+                                  misfire_grace_time=30)
+
+
                 # get the courses of the club only every 30 mins
                 scheduler.add_job(id=f"courses for {c}",
                                   func=fs.get_courses,
                                   trigger='cron',
-                                  minute='*/5',
+                                  minute='*/30',
                                   hour='*',
                                   misfire_grace_time=300)
 

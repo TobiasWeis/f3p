@@ -3,10 +3,11 @@ import datetime
 import json
 import requests
 
+from flask import current_app
 from sqlalchemy import and_
 
 from app import db
-from app.models import Club, Timepoint, Course
+from app.models import Club, Timepoint, Course, TimepointWeather
 
 
 class FFScraper:
@@ -14,8 +15,8 @@ class FFScraper:
         self.club_name = club_name
         self.app = app
 
-        club = Club.query.filter(Club.name == club_name).first()
-        self.club_id = club.id
+        self.club = Club.query.filter(Club.name == club_name).first()
+        self.club_id = self.club.id
         assert(self.club_id is not None)
 
     def get_api_url_checkins(self):
@@ -24,6 +25,29 @@ class FFScraper:
     def get_api_url_courses(self):
         return "https://www.fitnessfirst.de/kurse/kursplan/search?club_id=%04d&category_id=&class_id=&daytime_id=" % (self.club_id)
 
+    def get_api_url_weathermap(self):
+        zipcode = self.club.getZipcode()
+        apikey = current_app.config['OPENWEATHERMAP_API_KEY']
+        url = f"https://api.openweathermap.org/data/2.5/weather?zip={zipcode},DE&units=metric&appid={apikey}"
+        return url
+
+    def get_weather_for_zipcode(self):
+        with self.app.app_context():
+            response = requests.get(self.get_api_url_weathermap())
+            if response.status_code == 200:
+                res = json.loads(response.content.decode('utf-8'))
+                temp = res['main']['temp']
+                print(f"{self.club.address}: {temp}")
+                tpw = TimepointWeather(
+                            id_club=self.club_id,
+                            timestamp=time.time(),
+                            temperature=float(temp)
+                        )
+                db.session.add(tpw)
+                db.session.commit()
+            else:
+                print(f"[{self.club_name}] Weather error")
+                print(response)
 
     def get_checkins(self):
         with self.app.app_context():
