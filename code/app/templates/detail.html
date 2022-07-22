@@ -69,12 +69,22 @@ function update(){
         contentType : 'application/json',
         type : 'POST',
         success: function( data ) {
+            // timepoints
             x = [];
             y = [];
             var tzoffset = (new Date()).getTimezoneOffset() * 60000;
             data['timepoints'].forEach(function(datum){
                 x.push(new Date(datum[0]*1000 - tzoffset).toISOString("de-DE", {timeZone: "Europe/Berlin"}));
                 y.push(datum[1]/datum[2]*100.);
+            });
+
+            // timepoints weather
+            xw = [];
+            yw = [];
+            data['timepoints_weather'].forEach(function(datum){
+                xw.push(new Date(datum[0]*1000 - tzoffset).toISOString("de-DE", {timeZone: "Europe/Berlin"}));
+                yw.push(datum[1]);
+
             });
 
             course_starts = [];
@@ -100,11 +110,19 @@ function update(){
             Plotly.newPlot( PLOT, [
                 {
                     x: x,
-                    y: y 
+                    y: y,
+                    name: 'Utilization [%]'
+                },
+                {
+                    x: xw,
+                    y: yw,
+                    name: 'Temperature [°C]'
                 }],
                 {
-                shapes: shapes,
-                margin: { t: 0 } } );
+                    shapes: shapes,
+                    margin: { t: 0 },
+                    showlegend: false
+                } );
         }});
 }
 
