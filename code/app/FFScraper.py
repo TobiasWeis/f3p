@@ -23,7 +23,9 @@ class FFScraper:
         return f"https://www.fitnessfirst.de/club/api/checkins/{self.club_name}"
 
     def get_api_url_courses(self):
-        return "https://www.fitnessfirst.de/kurse/kursplan/search?club_id=%04d&category_id=&class_id=&daytime_id=" % (self.club_id)
+        #https://www.fitnessfirst.de/kurse/kursplan/search/0099/all/all/all
+        return "https://www.fitnessfirst.de/kurse/kursplan/search/%04d/all/all/all" % (self.club_id)
+        #return "https://www.fitnessfirst.de/kurse/kursplan/search?club_id=%04d&category_id=&class_id=&daytime_id=" % (self.club_id)
 
     def get_api_url_weathermap(self):
         zipcode = self.club.getZipcode()
