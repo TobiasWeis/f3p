@@ -59,7 +59,7 @@ def create_app():
                                   func=fs.get_weather_for_zipcode,
                                   trigger='cron',
                                   #minute='*/120', # 52 clubs, api-limit: 1000/day
-                                  hour='*/2',
+                                  hour='*/1',
                                   misfire_grace_time=30)
 
 

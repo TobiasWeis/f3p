@@ -67,13 +67,13 @@ function update(){
             //datum.perc = Math.trunc(Math.random() * 50);
 
             let textColor = 'black';
-            if(datum.perc == 0){
+	    if(datum.perc == 0 || datum.perc >= 50){
                 textColor = 'white';
             }
 
             html += '<tr>';
             html += '<th scope="row">'+datum.name+'</th>';
-            html += '<td><div class="progressbar" id="'+datum.name+'"><div style="width:'+datum.perc+'%;background-color:'+getColorForPercentage(datum.perc)+';color:'+textColor+';">'+datum.perc+'%</div></div></td>';
+            html += '<td><div class="progressbar" id="'+datum.name+'"><div style="width:'+ Math.min(100, datum.perc) +'%;background-color:'+getColorForPercentage(datum.perc)+';color:'+textColor+';">'+datum.perc+'%</div></div></td>';
             html += '<td>'+datum.datestr+'</td>';
             html += '</tr>';
         });

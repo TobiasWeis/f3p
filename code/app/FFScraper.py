@@ -35,7 +35,7 @@ class FFScraper:
 
     def get_weather_for_zipcode(self):
         with self.app.app_context():
-            response = requests.get(self.get_api_url_weathermap())
+            response = requests.get(self.get_api_url_weathermap(), timeout=20)
             if response.status_code == 200:
                 res = json.loads(response.content.decode('utf-8'))
                 temp = res['main']['temp']
@@ -54,24 +54,28 @@ class FFScraper:
     def get_checkins(self):
         with self.app.app_context():
             #print(f"[{self.club_name}] Getting timepoint")
-            response = requests.get(self.get_api_url_checkins())
+            response = requests.get(self.get_api_url_checkins(), timeout=20)
             if response.status_code == 200:
                 res = json.loads(response.content.decode('utf-8'))
-                tp = Timepoint(
-                        id_club=self.club_id,
-                        timestamp=time.time(),
-                        checkins=res['data']['check_ins'],
-                        total_allowed=res['data']['allowed_people']
-                        )
-                db.session.add(tp)
-                db.session.commit()
+                if res['data'] == []:
+                    print('Did not receive data for', self.club_name)
+                else:
+                    tp = Timepoint(
+                            id_club=self.club_id,
+                            timestamp=time.time(),
+                            checkins=res['data']['check_ins'],
+                            total_allowed=res['data']['allowed_people']
+                            )
+                    db.session.add(tp)
+                    db.session.commit()
+
             else:
-                print(f"[{self.club_name}] Timepoint error")
+                print(f"[{self.club_name}] Timepoint error, data was:",response)
 
 
     def get_courses(self):
         with self.app.app_context():
-            response = requests.get(self.get_api_url_courses())
+            response = requests.get(self.get_api_url_courses(), timeout=20)
             if response.status_code == 200:
                 data = json.loads(response.content.decode('utf-8'))['data']
                 for c in data['classes']:
