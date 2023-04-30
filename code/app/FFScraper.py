@@ -54,7 +54,10 @@ class FFScraper:
     def get_checkins(self):
         with self.app.app_context():
             #print(f"[{self.club_name}] Getting timepoint")
-            response = requests.get(self.get_api_url_checkins(), timeout=20)
+            response = requests.get(
+                    self.get_api_url_checkins(), 
+                    headers={"user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36"},
+                    timeout=20)
             if response.status_code == 200:
                 res = json.loads(response.content.decode('utf-8'))
                 if res['data'] == []:
@@ -75,7 +78,10 @@ class FFScraper:
 
     def get_courses(self):
         with self.app.app_context():
-            response = requests.get(self.get_api_url_courses(), timeout=20)
+            response = requests.get(
+                    self.get_api_url_courses(), 
+                    headers={"user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36"},
+                    timeout=20)
             if response.status_code == 200:
                 data = json.loads(response.content.decode('utf-8'))['data']
                 for c in data['classes']:
