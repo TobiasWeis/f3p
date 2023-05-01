@@ -100,6 +100,7 @@ def predict():
     # get cached mean-values for all weekdays
     weekday_means = calculate_weekday_means()
 
+
     predictions = []
 
     day_to_check = datetime.datetime.today().strftime('%A')
@@ -107,7 +108,7 @@ def predict():
     minute_of_day_to_check = hour_to_check * 60
     hours_into_the_future = 4
 
-    means_for_that_day = weekday_means[day_to_check]
+    means_for_that_day = weekday_means[day_to_check]['medians']
 
     print(f"Anticipating {day_to_check} after {round(minute_of_day_to_check/60)}")
 
@@ -116,7 +117,7 @@ def predict():
             hour_values = means_for_that_day[minute_of_day_to_check+(next_hour-1)*60:
                                          minute_of_day_to_check+(next_hour)*60
                                         ]
-            predictions.append(f"{hour_to_check+(next_hour-1)}-{hour_to_check+next_hour}: {np.mean(hour_values):.1f}%")
+            predictions.append(f"{hour_to_check+(next_hour-1)}:00-{hour_to_check+next_hour}:00: {np.mean(hour_values):.1f}%")
 
     return jsonify(predictions)
 
@@ -209,10 +210,19 @@ def calculate_weekday_means():
 
         weekday_arrays[dayname].append(np.array([r.minute_of_day, r.percentage]))
     
-    weekday_means = {}
-    for day_name, arrays in weekday_arrays.items():
-        dayarrays = np.array(arrays)
-        weekday_means[day_name] = list(np.mean(dayarrays[:,1], axis=0))
+    weekday_infos = {}
 
-    return weekday_means
+    for day_name, arrays in weekday_arrays.items():
+        weekday_infos[day_name] = {}
+
+        dayarrays = np.array(arrays)
+        weekday_infos[day_name]['meta'] = {}
+        weekday_infos[day_name]['meta']['num_days_with_data'] = len(dayarrays)
+
+        weekday_infos[day_name]['means'] = list(np.mean(dayarrays[:,1], axis=0))
+        weekday_infos[day_name]['mins'] = list(np.min(dayarrays[:,1], axis=0))
+        weekday_infos[day_name]['maxs'] = list(np.max(dayarrays[:,1], axis=0))
+        weekday_infos[day_name]['medians'] = list(np.median(dayarrays[:,1], axis=0))
+
+    return weekday_infos
 

@@ -5,7 +5,6 @@
 {% endblock %}
 
 {% block content %}
-    <h2>Analysis for </h2>
 
 <select class="form-select" onchange="select_update();" aria-label="Default select example" id="club-selector">
 </select>
@@ -47,12 +46,16 @@ function update(){
 	contentType : 'application/json',
         type : 'POST',
         success: function( data ) {
-	    var pred_str = ""
+			var pred_str = "<div>"
 	    for(var i in data){
-		pred_str += data[i]; 
+		pred_str += "<div style='width:100px;float:left;'>";
+		pred_str += data[i].split(": ")[0]; 
 		pred_str += "<br/>";
+		    pred_str += "<span style='font-size:24px;font-weight:bold'>"+data[i].split(": ")[1]+"</span>";
+		pred_str += "</div>";
 	    }
-	    $('#plots').append('<div style="float:left;padding:10px;width:200px;height:200px;"><h2>Prediction</h2>'+pred_str+'</div>');
+			pred_str += "</div>";
+			$('#plots').append('<div style="float:left;padding:10px;width:100%;"><h3>Prediction</h3>'+pred_str+'</div><br style="clear:both;">');
 	}
     });
 
@@ -66,17 +69,36 @@ function update(){
 	    for(var wd in weekdays){
 
 	        let this_weekday = weekdays[wd];
-			    $('#plots').append('<div style="float:left;"><h2>'+this_weekday+'</h2> <div id="plot_'+this_weekday+'" style="height:200px;width:200px;"></div></div>');
+			    $('#plots').append('<div style="float:left;"><h3>'+this_weekday+'</h3><span>'+data['data'][this_weekday]['meta']['num_days_with_data']+' days as basis</span> <div id="plot_'+this_weekday+'" style="height:200px;width:270px;"></div></div>');
 
 		    // timepoints
-		    x = [];
-		    y = [];
+		    x_medians = [];
+		    y_medians = [];
+
+	            x_mins = [];
+	   	    y_mins = [];
+	            x_maxs = [];
+	   	    y_maxs = [];
 
 
 		    let cnt = 0;
-		    data['data'][this_weekday].forEach(function(datum){
-			x.push(cnt/60);
-			y.push(datum);
+		    data['data'][this_weekday]['medians'].forEach(function(datum){
+			x_medians.push(cnt/60);
+			y_medians.push(datum);
+			cnt += 1;
+		    });
+
+		    cnt = 0;
+		    data['data'][this_weekday]['maxs'].forEach(function(datum){
+			x_maxs.push(cnt/60);
+			y_maxs.push(datum);
+			cnt += 1;
+		    });
+
+		    cnt = 0;
+		    data['data'][this_weekday]['mins'].forEach(function(datum){
+			x_mins.push(cnt/60);
+			y_mins.push(datum);
 			cnt += 1;
 		    });
 
@@ -84,10 +106,25 @@ function update(){
 		    PLOT = document.getElementById('plot_'+this_weekday);
 		    Plotly.newPlot( PLOT, [
 			{
-			    x: x,
-			    y: y,
-			    name: 'Utilization [%]'
-				}], {margin:{l:30, r:10, b:30, t:10, pad:5}, yaxis: {range: [0, 100]}}
+			    x: x_mins,
+			    y: y_mins,
+			    line: {color:'rgba(0,0,0,0)'}
+			},
+
+			{
+			    x: x_maxs,
+			    y: y_maxs,
+			    fill: 'tonexty',
+			    fillcolor: 'rgba(0,0,1,0.2)',
+			    line: {color:'rgba(0,0,0,0)'}
+			},
+			{
+			    x: x_medians,
+			    y: y_medians,
+			    line: {color:'rgba(0,0,1,1)'},
+			    name: 'Median [%]'
+			}], 
+			{margin:{l:30, r:10, b:30, t:10, pad:5}, yaxis: {range: [0, 100]}, showlegend:false}
 		    );
 	} // fr
 	$('#plots').append('<br style="clear:both;">');
