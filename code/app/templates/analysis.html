@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Analysis{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+    <h2>Analysis for </h2>
+
+<select class="form-select" onchange="select_update();" aria-label="Default select example" id="club-selector">
+</select>
+
+    <hr/>
+
+    <div id="plots" style="width:100%;"></div>
+
+<script type="text/javascript">
+
+var club_name = "wiesbaden1";
+
+function select_update(){
+    club_name = $('#club-selector').find(":selected").val();
+    update();
+}
+
+function populate_clubs(){
+    $.post("api/clubs", function(data){
+
+        data.forEach(function(datum){
+            $('#club-selector').append($('<option>', {
+                value: datum.name,
+                text: datum.title
+            }));
+        });
+
+        // set default value
+        $("#club-selector").val('wiesbaden1');
+    });
+}
+
+
+function update(){
+    $('#plots').empty();
+    $.ajax('api/analysis', {
+        data : JSON.stringify({club_name:club_name}),
+        contentType : 'application/json',
+        type : 'POST',
+        success: function( data ) {
+	    let weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+	
+	    for(var wd in weekdays){
+
+	        let this_weekday = weekdays[wd];
+			    $('#plots').append('<div style="float:left;"><h2>'+this_weekday+'</h2> <div id="plot_'+this_weekday+'" style="height:200px;width:200px;"></div></div>');
+
+		    // timepoints
+		    x = [];
+		    y = [];
+
+
+		    let cnt = 0;
+		    data[this_weekday].forEach(function(datum){
+			x.push(cnt/60);
+			y.push(datum);
+			cnt += 1;
+		    });
+
+
+		    PLOT = document.getElementById('plot_'+this_weekday);
+		    Plotly.newPlot( PLOT, [
+			{
+			    x: x,
+			    y: y,
+			    name: 'Utilization [%]'
+				}], {margin:{l:30, r:10, b:30, t:10, pad:5}, yaxis: {range: [0, 100]}}
+		    );
+	} // fr
+	$('#plots').append('<br style="clear:both;">');
+	}
+    });
+}
+
+$( document ).ready(function() {
+    populate_clubs();
+    update();
+});
+</script>
+{% endblock %}

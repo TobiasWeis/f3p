@@ -1,4 +1,6 @@
 from flask import Flask
+from flask_caching import Cache
+
 from flask_cors import CORS
 from flasgger import Swagger
 from flask_apscheduler import APScheduler
@@ -11,6 +13,7 @@ from .FFScraper import FFScraper
 from .utils import *
 
 scheduler = APScheduler()
+cache = Cache(config={'CACHE_TYPE': 'SimpleCache'})
 
 def create_app():
     from . import models
@@ -23,6 +26,7 @@ def create_app():
     CORS(app)
 
     db.init_app(app)
+    cache.init_app(app)
 
     app.register_blueprint(pages_blueprint)
 
