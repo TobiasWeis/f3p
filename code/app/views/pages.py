@@ -53,7 +53,7 @@ def detail():
     ret['timepoints_weather'] = []
     ret['courses'] = []
 
-    timepoints = Timepoint.query.filter(Timepoint.id_club==club.id).order_by(Timepoint.timestamp).all()
+    timepoints = Timepoint.query.filter(Timepoint.id_club==club.id).order_by(Timepoint.timestamp).limit(1440*7).all()
     for tp in timepoints:
         ret['timepoints'].append([tp.timestamp, tp.checkins, tp.total_allowed])
 
