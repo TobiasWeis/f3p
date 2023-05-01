@@ -1,0 +1,11 @@
+Flask
+Flask-SQLAlchemy
+flask_apscheduler
+SQLAlchemy
+gunicorn
+flasgger
+python-dateutil
+flask_cors
+python-dotenv
+Flask-Caching
+pandas

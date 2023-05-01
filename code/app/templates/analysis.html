@@ -41,6 +41,21 @@ function populate_clubs(){
 
 function update(){
     $('#plots').empty();
+
+    $.ajax('api/predict', {
+	data: JSON.stringify({club_name:club_name}),
+	contentType : 'application/json',
+        type : 'POST',
+        success: function( data ) {
+	    var pred_str = ""
+	    for(var i in data){
+		pred_str += data[i]; 
+		pred_str += "<br/>";
+	    }
+	    $('#plots').append('<div style="float:left;padding:10px;width:200px;height:200px;"><h2>Prediction</h2>'+pred_str+'</div>');
+	}
+    });
+
     $.ajax('api/analysis', {
         data : JSON.stringify({club_name:club_name}),
         contentType : 'application/json',
@@ -59,7 +74,7 @@ function update(){
 
 
 		    let cnt = 0;
-		    data[this_weekday].forEach(function(datum){
+		    data['data'][this_weekday].forEach(function(datum){
 			x.push(cnt/60);
 			y.push(datum);
 			cnt += 1;
@@ -80,9 +95,17 @@ function update(){
     });
 }
 
+$body = $("body");
+
+$(document).on({
+    ajaxStart: function() { $body.addClass("loading");    },
+     ajaxStop: function() { $body.removeClass("loading"); }    
+});
+
 $( document ).ready(function() {
     populate_clubs();
     update();
 });
 </script>
+<div class="modal"><!-- Place at bottom of page --></div>
 {% endblock %}

@@ -88,15 +88,48 @@ def get_minute_of_day(time):
     return minutes
 
 def make_cache_key(*args, **kwargs):
-    path = request.path
-    key_vals = str(hash(frozenset(request.json.items())))
-    cache_key = (path + key_vals).encode('utf-8')
+    #path = request.path
+    #key_vals = str(hash(frozenset(request.json.items())))
+    #cache_key = (path + key_vals).encode('utf-8')
+    cache_key = request.json['club_name']
     print("Cache key is:",cache_key)
     return cache_key
 
+@pages_blueprint.route('/api/predict', methods=['POST'])
+def predict():
+    # get cached mean-values for all weekdays
+    weekday_means = calculate_weekday_means()
+
+    predictions = []
+
+    day_to_check = datetime.datetime.today().strftime('%A')
+    hour_to_check = datetime.datetime.now().hour
+    minute_of_day_to_check = hour_to_check * 60
+    hours_into_the_future = 4
+
+    means_for_that_day = weekday_means[day_to_check]
+
+    print(f"Anticipating {day_to_check} after {round(minute_of_day_to_check/60)}")
+
+    for next_hour in range(1,hours_into_the_future+1):
+        if hour_to_check + next_hour < 24:
+            hour_values = means_for_that_day[minute_of_day_to_check+(next_hour-1)*60:
+                                         minute_of_day_to_check+(next_hour)*60
+                                        ]
+            predictions.append(f"{hour_to_check+(next_hour-1)}-{hour_to_check+next_hour}: {np.mean(hour_values):.1f}%")
+
+    return jsonify(predictions)
+
+
 @pages_blueprint.route('/api/analysis', methods=['POST'])
-@cache.cached(timeout=60*60*24*7, key_prefix=make_cache_key)
 def analysis():
+    weekday_means = calculate_weekday_means()
+    ret = {'data': weekday_means}
+    return jsonify(ret)
+
+
+@cache.cached(timeout=60*60*24*7, key_prefix=make_cache_key)
+def calculate_weekday_means():
     data = request.json
     club = Club.query.filter(Club.name == data['club_name']).first()
 
@@ -181,6 +214,5 @@ def analysis():
         dayarrays = np.array(arrays)
         weekday_means[day_name] = list(np.mean(dayarrays[:,1], axis=0))
 
-    #ret = {'data': weekday_arrays}
-    return jsonify(weekday_means)
+    return weekday_means
 
